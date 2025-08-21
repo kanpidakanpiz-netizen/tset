@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ผู้ประกอบการรุ่นเยาว์: จัดการร้านน้ำมะนาว</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .item-button { transition: transform 0.2s; }
+    .item-button:hover { transform: scale(1.1); }
+  </style>
+</head>
+<body class="bg-yellow-100 flex flex-col items-center justify-center min-h-screen">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+    <h1 class="text-2xl font-bold text-center mb-4">ผู้ประกอบการรุ่นเยาว์: ร้านน้ำมะนาว 💼</h1>
+    <p class="text-center mb-4">จัดการเงิน ซื้อวัตถุดิบ และขายเพื่อทำกำไร!</p>
+    <div class="mb-4">
+      <div>เงินทุน: <span id="money">100</span> บาท 💰</div>
+      <div>สินค้าคงคลัง:</div>
+      <ul id="inventory" class="list-disc pl-6">
+        <li>มะนาว: <span id="lemons">0</span> 🍋</li>
+        <li>น้ำตาล: <span id="sugar">0</span> 🍚</li>
+        <li>แก้ว: <span id="cups">0</span> 🥤</li>
+      </ul>
+    </div>
+    <div class="mb-4">
+      <h2 class="text-lg font-semibold">ซื้อวัตถุดิบ 🛒</h2>
+      <div class="flex justify-around">
+        <button id="buyLemon" class="item-button bg-green-500 text-white px-4 py-2 rounded-lg">ซื้อมะนาว (10 บาท)</button>
+        <button id="buySugar" class="item-button bg-blue-500 text-white px-4 py-2 rounded-lg">ซื้อน้ำตาล (5 บาท)</button>
+        <button id="buyCup" class="item-button bg-purple-500 text-white px-4 py-2 rounded-lg">ซื้อแก้ว (2 บาท)</button>
+      </div>
+    </div>
+    <button id="sell" class="bg-red-500 text-white px-4 py-2 rounded-lg mb-4 w-full">ขายน้ำมะนาว 🍹 (ราคาแก้วละ 20 บาท)</button>
+    <div id="feedback" class="text-center mb-4"></div>
+    <div class="flex justify-between">
+      <div>กำไรสะสม: <span id="profit">0</span> บาท</div>
+      <div>ดาว: <span id="stars">0</span> ⭐</div>
+    </div>
+    <button id="nextDay" class="bg-orange-500 text-white px-4 py-2 rounded-lg mt-4 hidden w-full">วันใหม่ (รีเซ็ตสินค้า)</button>
+    <button id="restart" class="bg-gray-500 text-white px-4 py-2 rounded-lg mt-4 w-full">เริ่มใหม่</button>
+  </div>
+
+  <script>
+    let money = 100;
+    let lemons = 0;
+    let sugar = 0;
+    let cups = 0;
+    let profit = 0;
+    let stars = 0;
+    let day = 1;
+
+    const moneyEl = document.getElementById("money");
+    const lemonsEl = document.getElementById("lemons");
+    const sugarEl = document.getElementById("sugar");
+    const cupsEl = document.getElementById("cups");
+    const profitEl = document.getElementById("profit");
+    const starsEl = document.getElementById("stars");
+    const feedbackEl = document.getElementById("feedback");
+    const nextDayBtn = document.getElementById("nextDay");
+    const sellBtn = document.getElementById("sell");
+
+    function updateDisplay() {
+      moneyEl.textContent = money;
+      lemonsEl.textContent = lemons;
+      sugarEl.textContent = sugar;
+      cupsEl.textContent = cups;
+      profitEl.textContent = profit;
+      starsEl.textContent = stars;
+    }
+
+    function buyItem(item, cost, inventoryVar) {
+      if (money >= cost) {
+        money -= cost;
+        window[inventoryVar]++;
+        updateDisplay();
+        feedbackEl.textContent = `ซื้อ${item}สำเร็จ!`;
+      } else {
+        feedbackEl.textContent = "เงินไม่พอ ลองวางแผนใหม่!";
+      }
+    }
+
+    document.getElementById("buyLemon").addEventListener("click", () => buyItem("มะนาว", 10, "lemons"));
+    document.getElementById("buySugar").addEventListener("click", () => buyItem("น้ำตาล", 5, "sugar"));
+    document.getElementById("buyCup").addEventListener("click", () => buyItem("แก้ว", 2, "cups"));
+
+    sellBtn.addEventListener("click", () => {
+      try {
+        const maxSales = Math.min(lemons, sugar, cups);
+        if (maxSales === 0) {
+          feedbackEl.textContent = "ไม่มีวัตถุดิบพอ ลองซื้อเพิ่ม!";
+          return;
+        }
+        const customers = Math.floor(Math.random() * 5) + 1; // สุ่ม 1-5 คน
+        const sales = Math.min(maxSales, customers);
+        const revenue = sales * 20;
+        const cost = (sales * 10) + (sales * 5) + (sales * 2); // ต้นทุนต่อแก้ว
+        const dayProfit = revenue - cost;
+        profit += dayProfit;
+        lemons -= sales;
+        sugar -= sales;
+        cups -= sales;
+        updateDisplay();
+        feedbackEl.textContent = `ขายได้ ${sales} แก้ว รายได้ ${revenue} บาท กำไร ${dayProfit} บาท!`;
+        
+        if (dayProfit > 20) stars += 3;
+        else if (dayProfit > 10) stars += 2;
+        else if (dayProfit > 0) stars += 1;
+        starsEl.textContent = stars;
+
+        if (profit >= 50 * day) {
+          feedbackEl.textContent += " ยินดีด้วย! ผ่านวันนี้ ทำกำไรดีมาก";
+          nextDayBtn.classList.remove("hidden");
+        } else if (money <= 0) {
+          feedbackEl.textContent += " ขาดทุน! ลองวางแผนการเงินให้ดีกว่านี้";
+        }
+      } catch (error) {
+        console.error("เกิดข้อผิดพลาด:", error);
+        feedbackEl.textContent = "เกิดข้อผิดพลาด ลองรีเฟรช";
+      }
+    });
+
+    nextDayBtn.addEventListener("click", () => {
+      day++;
+      lemons = 0;
+      sugar = 0;
+      cups = 0;
+      money += 50; // เงินทุนเพิ่มสำหรับวันใหม่
+      updateDisplay();
+      feedbackEl.textContent = `วันใหม่ ${day}: วางแผนดีๆ นะ!`;
+      nextDayBtn.classList.add("hidden");
+    });
+
+    document.getElementById("restart").addEventListener("click", () => {
+      money = 100;
+      lemons = 0;
+      sugar = 0;
+      cups = 0;
+      profit = 0;
+      stars = 0;
+      day = 1;
+      updateDisplay();
+      feedbackEl.textContent = "";
+      nextDayBtn.classList.add("hidden");
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
